@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sozlamalar - Zamonaviy Portfolio</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background: #0a0a0a;
+            color: #fff;
+            overflow-x: hidden;
+        }
+
+        #canvas-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+
+        .gradient-text {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .glass-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(102, 126, 234, 0.2);
+        }
+
+        .nav-link {
+            position: relative;
+            color: #fff;
+            text-decoration: none;
+            padding: 10px 20px;
+            transition: color 0.3s ease;
+        }
+
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            width: 0;
+            height: 2px;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            transition: width 0.3s ease, left 0.3s ease;
+        }
+
+        .nav-link:hover::after {
+            width: 100%;
+            left: 0;
+        }
+
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .theme-toggle:hover {
+            transform: rotate(180deg);
+        }
+
+        .user-menu {
+            position: relative;
+        }
+
+        .user-dropdown {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 10px;
+            min-width: 200px;
+            display: none;
+            z-index: 100;
+        }
+
+        .user-dropdown.show {
+            display: block;
+        }
+
+        .user-dropdown a {
+            display: block;
+            padding: 10px 15px;
+            color: #fff;
+            text-decoration: none;
+            border-radius: 10px;
+            transition: background 0.3s ease;
+        }
+
+        .user-dropdown a:hover {
+            background: rgba(102, 126, 234, 0.3);
+        }
+
+        .input-field {
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 15px 20px;
+            color: #fff;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .input-field::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 15px 40px;
+            border-radius: 50px;
+            color: #fff;
+            font-weight: 600;
+            font-size: 16px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            padding: 15px 40px;
+            border-radius: 50px;
+            color: #fff;
+            font-weight: 600;
+            font-size: 16px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+
+        .btn-danger:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px rgba(239, 68, 68, 0.4);
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 60px;
+            height: 30px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .toggle-switch.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .toggle-switch::before {
+            content: '';
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 24px;
+            height: 24px;
+            background: #fff;
+            border-radius: 50%;
+            transition: transform 0.3s ease;
+        }
+
+        .toggle-switch.active::before {
+            transform: translateX(30px);
+        }
+
+        body.light-mode {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        body.light-mode .glass-card {
+            background: rgba(255, 255, 255, 0.8);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        body.light-mode .nav-link {
+            color: #333;
+        }
+
+        .success-message {
+            background: rgba(16, 185, 129, 0.2);
+            border: 1px solid rgba(16, 185, 129, 0.5);
+            color: #10b981;
+            padding: 15px;
+            border-radius: 10px;
+            display: none;
+        }
+
+        .error-message {
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid rgba(239, 68, 68, 0.5);
+            color: #ef4444;
+            padding: 15px;
+            border-radius: 10px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="canvas-container"></div>
+
+    <div class="theme-toggle" onclick="toggleTheme()">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+        </svg>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="fixed top-0 left-0 right-0 z-50 glass-card mx-4 mt-4 px-8 py-4">
+        <div class="flex justify-between items-center max-w-7xl mx-auto">
+            <div class="text-2xl font-bold gradient-text">Sozlamalar</div>
+            <div class="flex gap-8 items-center">
+                <a href="home.html" class="nav-link">Portfolio</a>
+                <a href="dashboard.html" class="nav-link">Dashboard</a>
+                <a href="#" class="nav-link">Sozlamalar</a>
+                <div class="user-menu">
+                    <div class="flex items-center gap-3 cursor-pointer" onclick="toggleUserMenu()">
+                        <div class="w-10 h-10 rounded-full bg-gradient-to-r from-purple-500 to-blue-500 flex items-center justify-center">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M20 21v-2a4 4 0 0 0-4-H8a4 4 0 0 0-4 4v2"/>
+                                <circle cx="12" cy="7" r="4"/>
+                            </svg>
+                        </div>
+                        <span id="navUsername" class="text-sm font-medium">User</span>
+                    </div>
+                    <div class="user-dropdown" id="userDropdown">
+                        <a href="home.html">Portfolio</a>
+                        <a href="dashboard.html">Dashboard</a>
+                        <a href="#" onclick="logout()">Chiqish</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Settings Content -->
+    <div class="pt-32 pb-20 px-4">
+        <div class="max-w-4xl mx-auto">
+            <h1 class="text-4xl font-bold gradient-text mb-2">Sozlamalar</h1>
+            <p class="text-gray-400 mb-8">Profil sozlamalaringizni boshqaring</p>
+
+            <!-- Profile Settings -->
+            <div class="glass-card p-8 mb-6">
+                <h3 class="text-2xl font-bold mb-6 gradient-text">Profil Ma'lumotlari</h3>
+                
+                <div class="flex items-center gap-6 mb-8">
+                    <div class="relative">
+                        <div class="w-24 h-24 rounded-full bg-gradient-to-r from-purple-500 to-blue-500 flex items-center justify-center overflow-hidden">
+                            <img id="profileImagePreview" src="rasm1.jpg" alt="Profile" class="w-full h-full object-cover">
+                        </div>
+                        <label for="profileImageInput" class="absolute bottom-0 right-0 w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center cursor-pointer hover:bg-purple-600 transition-colors">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                            </svg>
+                        </label>
+                        <input type="file" id="profileImageInput" accept="image/*" class="hidden" onchange="previewImage(this)">
+                    </div>
+                    <div>
+                        <button class="btn-primary" style="width: auto; padding: 10px 25px;" onclick="document.getElementById('profileImageInput').click()">Rasmni o'zgartirish</button>
+                        <p class="text-sm text-gray-400 mt-2">JPG, PNG (max 5MB)</p>
+                    </div>
+                </div>
+
+                <div class="space-y-6">
+                    <div>
+                        <label class="block text-sm font-medium mb-2 text-gray-300">Ism</label>
+                        <input type="text" id="nameInput" class="input-field" placeholder="Ismingiz" value="User">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-2 text-gray-300">Email</label>
+                        <input type="email" id="emailInput" class="input-field" placeholder="email@example.com" value="user@example.com">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-2 text-gray-300">Telegram Username</label>
+                        <input type="text" id="telegramInput" class="input-field" placeholder="@username" value="@username">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-2 text-gray-300">Bio</label>
+                        <textarea id="bioInput" class="input-field" rows="4" placeholder="O'zingiz haqida qisqacha ma'lumot">Full-stack dasturchi</textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Notification Settings -->
+            <div class="glass-card p-8 mb-6">
+                <h3 class="text-2xl font-bold mb-6 gradient-text">Bildirishnomalar</h3>
+                
+                <div class="space-y-4">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <p class="font-medium">Email bildirishnomalari</p>
+                            <p class="text-sm text-gray-400">Yangi loyihalar va yangiliklar uchun</p>
+                        </div>
+                        <div class="toggle-switch active" onclick="this.classList.toggle('active')"></div>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <p class="font-medium">Push bildirishnomalari</p>
+                            <p class="text-sm text-gray-400">Brauzer bildirishnomalari</p>
+                        </div>
+                        <div class="toggle-switch active" onclick="this.classList.toggle('active')"></div>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <p class="font-medium">Marketing xabarlari</p>
+                            <p class="text-sm text-gray-400">Reklama va takliflar</p>
+                        </div>
+                        <div class="toggle-switch" onclick="this.classList.toggle('active')"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Security Settings -->
+            <div class="glass-card p-8 mb-6">
+                <h3 class="text-2xl font-bold mb-6 gradient-text">Xavfsizlik</h3>
+                
+                <div class="space-y-6">
+                    <div>
+                        <label class="block text-sm font-medium mb-2 text-gray-300">Joriy parol</label>
+                        <input type="password" id="currentPassword" class="input-field" placeholder="Joriy parol">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-2 text-gray-300">Yangi parol</label>
+                        <input type="password" id="newPassword" class="input-field" placeholder="Yangi parol">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-2 text-gray-300">Parolni tasdiqlash</label>
+                        <input type="password" id="confirmPassword" class="input-field" placeholder="Parolni tasdiqlash">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Theme Settings -->
+            <div class="glass-card p-8 mb-6">
+                <h3 class="text-2xl font-bold mb-6 gradient-text">Mavzu</h3>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="glass-card p-4 text-center cursor-pointer border-2 border-purple-500" onclick="setTheme('dark')">
+                        <div class="w-16 h-16 mx-auto mb-3 rounded-lg bg-gray-800 flex items-center justify-center">
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                            </svg>
+                        </div>
+                        <p class="font-medium">Qorong'u</p>
+                    </div>
+                    <div class="glass-card p-4 text-center cursor-pointer" onclick="setTheme('light')">
+                        <div class="w-16 h-16 mx-auto mb-3 rounded-lg bg-gray-200 flex items-center justify-center">
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="5"/>
+                                <line x1="12" y1="1" x2="12" y2="3"/>
+                                <line x1="12" y1="21" x2="12" y2="23"/>
+                                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+                                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+                                <line x1="1" y1="12" x2="3" y2="12"/>
+                                <line x1="21" y1="12" x2="23" y2="12"/>
+                                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+                                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+                            </svg>
+                        </div>
+                        <p class="font-medium">Yorqin</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Danger Zone -->
+            <div class="glass-card p-8 mb-6 border-red-500/30">
+                <h3 class="text-2xl font-bold mb-6 text-red-400">Xavfli zona</h3>
+                
+                <div class="space-y-4">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <p class="font-medium">Hisobni o'chirish</p>
+                            <p class="text-sm text-gray-400">Barcha ma'lumotlarni o'chirish</p>
+                        </div>
+                        <button class="btn-danger" style="width: auto; padding: 10px 25px;">O'chirish</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Messages -->
+            <div class="success-message" id="successMessage">
+                Sozlamalar muvaffaqiyatli saqlandi!
+            </div>
+            <div class="error-message" id="errorMessage">
+                Xatolik yuz berdi. Iltimos, qaytadan urinib ko'ring.
+            </div>
+
+            <!-- Save Button -->
+            <button class="btn-primary" onclick="saveSettings()">Saqlash</button>
+        </div>
+    </div>
+
+    <script>
+        // Check authentication
+        if (localStorage.getItem('isLoggedIn') !== 'true') {
+            window.location.href = 'login.html';
+        }
+
+        // Set username
+        const username = localStorage.getItem('username') || 'User';
+        document.getElementById('navUsername').textContent = username;
+        document.getElementById('nameInput').value = username;
+
+        // Three.js Background
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.getElementById('canvas-container').appendChild(renderer.domElement);
+
+        // Particles
+        const particlesGeometry = new THREE.BufferGeometry();
+        const particlesCount = 1500;
+        const posArray = new Float32Array(particlesCount * 3);
+
+        for (let i = 0; i < particlesCount * 3; i++) {
+            posArray[i] = (Math.random() - 0.5) * 10;
+        }
+
+        particlesGeometry.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+
+        const particlesMaterial = new THREE.PointsMaterial({
+            size: 0.02,
+            color: 0x667eea,
+            transparent: true,
+            opacity: 0.8
+        });
+
+        const particlesMesh = new THREE.Points(particlesGeometry, particlesMaterial);
+        scene.add(particlesMesh);
+
+        camera.position.z = 3;
+
+        // Mouse movement
+        let mouseX = 0;
+        let mouseY = 0;
+
+        document.addEventListener('mousemove', (event) => {
+            mouseX = event.clientX / window.innerWidth - 0.5;
+            mouseY = event.clientY / window.innerHeight - 0.5;
+        });
+
+        // Animation
+        function animate() {
+            requestAnimationFrame(animate);
+
+            particlesMesh.rotation.y += 0.001;
+            particlesMesh.rotation.x += 0.001;
+
+            particlesMesh.rotation.y += mouseX * 0.05;
+            particlesMesh.rotation.x += mouseY * 0.05;
+
+            renderer.render(scene, camera);
+        }
+
+        animate();
+
+        // Resize
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // GSAP Animations
+        gsap.from('.glass-card', {
+            opacity: 0,
+            y: 30,
+            duration: 0.8,
+            stagger: 0.2,
+            delay: 0.3
+        });
+
+        // Theme toggle
+        function toggleTheme() {
+            document.body.classList.toggle('light-mode');
+        }
+
+        function setTheme(theme) {
+            if (theme === 'dark') {
+                document.body.classList.remove('light-mode');
+            } else {
+                document.body.classList.add('light-mode');
+            }
+        }
+
+        // User menu toggle
+        function toggleUserMenu() {
+            document.getElementById('userDropdown').classList.toggle('show');
+        }
+
+        // Logout
+        function logout() {
+            localStorage.removeItem('isLoggedIn');
+            localStorage.removeItem('username');
+            window.location.href = 'login.html';
+        }
+
+        // Save settings
+        function saveSettings() {
+            const name = document.getElementById('nameInput').value;
+            const email = document.getElementById('emailInput').value;
+            const telegram = document.getElementById('telegramInput').value;
+            const bio = document.getElementById('bioInput').value;
+
+            // Save to localStorage
+            localStorage.setItem('username', name);
+            localStorage.setItem('email', email);
+            localStorage.setItem('telegram', telegram);
+            localStorage.setItem('bio', bio);
+
+            // Update username display
+            document.getElementById('navUsername').textContent = name;
+
+            // Show success message
+            document.getElementById('successMessage').style.display = 'block';
+            document.getElementById('errorMessage').style.display = 'none';
+
+            setTimeout(() => {
+                document.getElementById('successMessage').style.display = 'none';
+            }, 3000);
+        }
+
+        // Preview image function
+        function previewImage(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('profileImagePreview').src = e.target.result;
+                    localStorage.setItem('profileImage', e.target.result);
+                }
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(event) {
+            const userMenu = document.querySelector('.user-menu');
+            if (!userMenu.contains(event.target)) {
+                document.getElementById('userDropdown').classList.remove('show');
+            }
+        });
+    </script>
+</body>
+</html>

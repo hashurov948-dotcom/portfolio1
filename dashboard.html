@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Zamonaviy Portfolio</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background: #0a0a0a;
+            color: #fff;
+            overflow-x: hidden;
+        }
+
+        #canvas-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+
+        .gradient-text {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .glass-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(102, 126, 234, 0.2);
+        }
+
+        .stat-card {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .input-field {
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 15px 20px;
+            color: #fff;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .input-field::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .nav-link {
+            position: relative;
+            color: #fff;
+            text-decoration: none;
+            padding: 10px 20px;
+            transition: color 0.3s ease;
+        }
+
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            width: 0;
+            height: 2px;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            transition: width 0.3s ease, left 0.3s ease;
+        }
+
+        .nav-link:hover::after {
+            width: 100%;
+            left: 0;
+        }
+
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .theme-toggle:hover {
+            transform: rotate(180deg);
+        }
+
+        .user-menu {
+            position: relative;
+        }
+
+        .user-dropdown {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 10px;
+            min-width: 200px;
+            display: none;
+            z-index: 100;
+        }
+
+        .user-dropdown.show {
+            display: block;
+        }
+
+        .user-dropdown a {
+            display: block;
+            padding: 10px 15px;
+            color: #fff;
+            text-decoration: none;
+            border-radius: 10px;
+            transition: background 0.3s ease;
+        }
+
+        .user-dropdown a:hover {
+            background: rgba(102, 126, 234, 0.3);
+        }
+
+        .progress-ring {
+            transform: rotate(-90deg);
+        }
+
+        .progress-ring-circle {
+            transition: stroke-dashoffset 0.5s ease;
+        }
+
+        .activity-item {
+            position: relative;
+            padding-left: 30px;
+        }
+
+        .activity-item::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .activity-item::after {
+            content: '';
+            position: absolute;
+            left: 5px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 2px;
+            height: 100%;
+            background: rgba(102, 126, 234, 0.3);
+        }
+
+        .chart-bar {
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            border-radius: 5px;
+            transition: height 0.5s ease;
+        }
+
+        body.light-mode {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        body.light-mode .glass-card {
+            background: rgba(255, 255, 255, 0.8);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        body.light-mode .nav-link {
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div id="canvas-container"></div>
+
+    <div class="theme-toggle" onclick="toggleTheme()">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+        </svg>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="fixed top-0 left-0 right-0 z-50 glass-card mx-4 mt-4 px-8 py-4">
+        <div class="flex justify-between items-center max-w-7xl mx-auto">
+            <div class="text-2xl font-bold gradient-text">Dashboard</div>
+            <div class="flex gap-8 items-center">
+                <a href="home.html" class="nav-link">Portfolio</a>
+                <a href="#" class="nav-link">Dashboard</a>
+                <a href="settings.html" class="nav-link">Sozlamalar</a>
+                <div class="user-menu">
+                    <div class="flex items-center gap-3 cursor-pointer" onclick="toggleUserMenu()">
+                        <div class="w-10 h-10 rounded-full bg-gradient-to-r from-purple-500 to-blue-500 flex items-center justify-center">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                                <circle cx="12" cy="7" r="4"/>
+                            </svg>
+                        </div>
+                        <span id="navUsername" class="text-sm font-medium">User</span>
+                    </div>
+                    <div class="user-dropdown" id="userDropdown">
+                        <a href="home.html">Portfolio</a>
+                        <a href="settings.html">Sozlamalar</a>
+                        <a href="#" onclick="logout()">Chiqish</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Dashboard Content -->
+    <div class="pt-32 pb-20 px-4">
+        <div class="max-w-7xl mx-auto">
+            <!-- Welcome Section -->
+            <div class="mb-8">
+                <h1 class="text-4xl font-bold gradient-text mb-2">Xush kelibsiz, <span id="welcomeUsername">User</span>!</h1>
+                <p class="text-gray-400">Portfolio dashboardingizga xush kelibsiz</p>
+            </div>
+
+            <!-- Stats Grid -->
+            <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div class="glass-card stat-card p-6">
+                    <div class="flex justify-between items-start mb-4">
+                        <div>
+                            <p class="text-gray-400 text-sm">Loyihalar</p>
+                            <h3 class="text-3xl font-bold gradient-text">50+</h3>
+                        </div>
+                        <div class="w-12 h-12 rounded-full bg-purple-500/20 flex items-center justify-center">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2  2z"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <p class="text-green-400 text-sm">↑ 12% o'sish</p>
+                </div>
+
+                <div class="glass-card stat-card p-6">
+                    <div class="flex justify-between items-start mb-4">
+                        <div>
+                            <p class="text-gray-400 text-sm">Mijozlar</p>
+                            <h3 class="text-3xl font-bold gradient-text">25+</h3>
+                        </div>
+                        <div class="w-12 h-12 rounded-full bg-blue-500/20 flex items-center justify-center">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                                <circle cx="9" cy="7" r="4"/>
+                                <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <p class="text-green-400 text-sm">↑ 8% o'sish</p>
+                </div>
+
+                <div class="glass-card stat-card p-6">
+                    <div class="flex justify-between items-start mb-4">
+                        <div>
+                            <p class="text-gray-400 text-sm">Ko'rishlar</p>
+                            <h3 class="text-3xl font-bold gradient-text">10K+</h3>
+                        </div>
+                        <div class="w-12 h-12 rounded-full bg-green-500/20 flex items-center justify-center">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                <circle cx="12" cy="12" r="3"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <p class="text-green-400 text-sm">↑ 25% o'sish</p>
+                </div>
+
+                <div class="glass-card stat-card p-6">
+                    <div class="flex justify-between items-start mb-4">
+                        <div>
+                            <p class="text-gray-400 text-sm">Reyting</p>
+                            <h3 class="text-3xl font-bold gradient-text">4.9</h3>
+                        </div>
+                        <div class="w-12 h-12 rounded-full bg-yellow-500/20 flex items-center justify-center">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <p class="text-yellow-400 text-sm">⭐⭐⭐⭐⭐</p>
+                </div>
+            </div>
+
+            <!-- Charts and Activity -->
+            <div class="grid lg:grid-cols-3 gap-6 mb-8">
+                <!-- Chart -->
+                <div class="glass-card p-6 lg:col-span-2">
+                    <h3 class="text-xl font-bold mb-6 gradient-text">Oylik Faollik</h3>
+                    <div class="flex items-end justify-between h-48 gap-4">
+                        <div class="flex flex-col items-center flex-1">
+                            <div class="chart-bar w-full" style="height: 60%"></div>
+                            <span class="text-sm text-gray-400 mt-2">Yan</span>
+                        </div>
+                        <div class="flex flex-col items-center flex-1">
+                            <div class="chart-bar w-full" style="height: 80%"></div>
+                            <span class="text-sm text-gray-400 mt-2">Fev</span>
+                        </div>
+                        <div class="flex flex-col items-center flex-1">
+                            <div class="chart-bar w-full" style="height: 45%"></div>
+                            <span class="text-sm text-gray-400 mt-2">Mar</span>
+                        </div>
+                        <div class="flex flex-col items-center flex-1">
+                            <div class="chart-bar w-full" style="height: 90%"></div>
+                            <span class="text-sm text-gray-400 mt-2">Apr</span>
+                        </div>
+                        <div class="flex flex-col items-center flex-1">
+                            <div class="chart-bar w-full" style="height: 70%"></div>
+                            <span class="text-sm text-gray-400 mt-2">May</span>
+                        </div>
+                        <div class="flex flex-col items-center flex-1">
+                            <div class="chart-bar w-full" style="height: 85%"></div>
+                            <span class="text-sm text-gray-400 mt-2">Iyun</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Skills Progress -->
+                <div class="glass-card p-6">
+                    <h3 class="text-xl font-bold mb-6 gradient-text">Mahorat Darajasi</h3>
+                    <div class="flex justify-center mb-6">
+                        <svg class="progress-ring" width="150" height="150">
+                            <circle class="progress-ring-circle" stroke="rgba(255,255,255,0.1)" stroke-width="10" fill="transparent" r="60" cx="75" cy="75"/>
+                            <circle class="progress-ring-circle" stroke="url(#gradient)" stroke-width="10" fill="transparent" r="60" cx="75" cy="75" stroke-dasharray="377" stroke-dashoffset="75"/>
+                            <defs>
+                                <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                                    <stop offset="0%" stop-color="#667eea"/>
+                                    <stop offset="100%" stop-color="#764ba2"/>
+                                </linearGradient>
+                            </defs>
+                        </svg>
+                        <div class="absolute flex items-center justify-center">
+                            <span class="text-3xl font-bold gradient-text">80%</span>
+                        </div>
+                    </div>
+                    <div class="text-center">
+                        <p class="text-gray-400">Umumiy mahorat darajasi</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Activity -->
+            <div class="glass-card p-6 mb-8">
+                <h3 class="text-xl font-bold mb-6 gradient-text">So'nggi Faollik</h3>
+                <div class="space-y-4">
+                    <div class="activity-item">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="font-medium">Yangi loyiha qo'shildi</p>
+                                <p class="text-sm text-gray-400">E-commerce Platform</p>
+                            </div>
+                            <span class="text-sm text-gray-400">2 soat oldin</span>
+                        </div>
+                    </div>
+                    <div class="activity-item">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="font-medium">Portfolio yangilandi</p>
+                                <p class="text-sm text-gray-400">Skills section</p>
+                            </div>
+                            <span class="text-sm text-gray-400">5 soat oldin</span>
+                        </div>
+                    </div>
+                    <div class="activity-item">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="font-medium">Mijoz bilan bog'landi</p>
+                                <p class="text-sm text-gray-400">Telegram orqali</p>
+                            </div>
+                            <span class="text-sm text-gray-400">1 kun oldin</span>
+                        </div>
+                    </div>
+                    <div class="activity-item">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="font-medium">Loyihani tugatdi</p>
+                                <p class="text-sm text-gray-400">Social Media App</p>
+                            </div>
+                            <span class="text-sm text-gray-400">3 kun oldin</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="grid md:grid-cols-3 gap-6">
+                <div class="glass-card p-6 text-center cursor-pointer hover:bg-purple-500/10 transition-colors" onclick="showModal('newProjectModal')">
+                    <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-purple-500/20 flex items-center justify-center">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 5v14M5 12h14"/>
+                        </svg>
+                    </div>
+                    <h4 class="font-bold mb-2">Yangi Loyiha</h4>
+                    <p class="text-sm text-gray-400">Yangi loyiha qo'shish</p>
+                </div>
+
+                <div class="glass-card p-6 text-center cursor-pointer hover:bg-blue-500/10 transition-colors" onclick="showModal('editPortfolioModal')">
+                    <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-blue-500/20 flex items-center justify-center">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                        </svg>
+                    </div>
+                    <h4 class="font-bold mb-2">Portfolio Tahrirlash</h4>
+                    <p class="text-sm text-gray-400">Ma'lumotlarni yangilash</p>
+                </div>
+
+                <div class="glass-card p-6 text-center cursor-pointer hover:bg-green-500/10 transition-colors" onclick="showModal('sendMessageModal')">
+                    <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-green-500/20 flex items-center justify-center">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                            <polyline points="22,6 12,13 2,6"/>
+                        </svg>
+                    </div>
+                    <h4 class="font-bold mb-2">Xabar Yuborish</h4>
+                    <p class="text-sm text-gray-400">Mijozlarga xabar</p>
+                </div>
+            </div>
+
+            <!-- New Project Modal -->
+            <div id="newProjectModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden">
+                <div class="glass-card p-8 w-full max-w-md">
+                    <h3 class="text-2xl font-bold mb-6 gradient-text">Yangi Loyiha</h3>
+                    <div class="space-y-4">
+                        <input type="text" id="projectName" class="input-field" placeholder="Loyiha nomi">
+                        <textarea id="projectDesc" class="input-field" rows="3" placeholder="Loyiha tavsifi"></textarea>
+                        <div class="flex gap-4">
+                            <button onclick="closeModal('newProjectModal')" class="btn-primary" style="background: rgba(255,255,255,0.1);">Bekor qilish</button>
+                            <button onclick="addProject()" class="btn-primary">Qo'shish</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Edit Portfolio Modal -->
+            <div id="editPortfolioModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden">
+                <div class="glass-card p-8 w-full max-w-md">
+                    <h3 class="text-2xl font-bold mb-6 gradient-text">Portfolio Tahrirlash</h3>
+                    <div class="space-y-4">
+                        <input type="text" id="editName" class="input-field" placeholder="Ism">
+                        <input type="text" id="editBio" class="input-field" placeholder="Bio">
+                        <div class="flex gap-4">
+                            <button onclick="closeModal('editPortfolioModal')" class="btn-primary" style="background: rgba(255,255,255,0.1);">Bekor qilish</button>
+                            <button onclick="savePortfolio()" class="btn-primary">Saqlash</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Send Message Modal -->
+            <div id="sendMessageModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden">
+                <div class="glass-card p-8 w-full max-w-md">
+                    <h3 class="text-2xl font-bold mb-6 gradient-text">Xabar Yuborish</h3>
+                    <div class="space-y-4">
+                        <input type="text" id="messageRecipient" class="input-field" placeholder="Qabul qiluvchi">
+                        <textarea id="messageContent" class="input-field" rows="4" placeholder="Xabar mazmuni"></textarea>
+                        <div class="flex gap-4">
+                            <button onclick="closeModal('sendMessageModal')" class="btn-primary" style="background: rgba(255,255,255,0.1);">Bekor qilish</button>
+                            <button onclick="sendMessage()" class="btn-primary">Yuborish</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Check authentication
+        if (localStorage.getItem('isLoggedIn') !== 'true') {
+            window.location.href = 'login.html';
+        }
+
+        // Set username
+        const username = localStorage.getItem('username') || 'User';
+        document.getElementById('navUsername').textContent = username;
+        document.getElementById('welcomeUsername').textContent = username;
+
+        // Three.js Background
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.getElementById('canvas-container').appendChild(renderer.domElement);
+
+        // Particles
+        const particlesGeometry = new THREE.BufferGeometry();
+        const particlesCount = 1500;
+        const posArray = new Float32Array(particlesCount * 3);
+
+        for (let i = 0; i < particlesCount * 3; i++) {
+            posArray[i] = (Math.random() - 0.5) * 10;
+        }
+
+        particlesGeometry.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+
+        const particlesMaterial = new THREE.PointsMaterial({
+            size: 0.02,
+            color: 0x667eea,
+            transparent: true,
+            opacity: 0.8
+        });
+
+        const particlesMesh = new THREE.Points(particlesGeometry, particlesMaterial);
+        scene.add(particlesMesh);
+
+        camera.position.z = 3;
+
+        // Mouse movement
+        let mouseX = 0;
+        let mouseY = 0;
+
+        document.addEventListener('mousemove', (event) => {
+            mouseX = event.clientX / window.innerWidth - 0.5;
+            mouseY = event.clientY / window.innerHeight - 0.5;
+        });
+
+        // Animation
+        function animate() {
+            requestAnimationFrame(animate);
+
+            particlesMesh.rotation.y += 0.001;
+            particlesMesh.rotation.x += 0.001;
+
+            particlesMesh.rotation.y += mouseX * 0.05;
+            particlesMesh.rotation.x += mouseY * 0.05;
+
+            renderer.render(scene, camera);
+        }
+
+        animate();
+
+        // Resize
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // GSAP Animations
+        gsap.from('.stat-card', {
+            opacity: 0,
+            y: 30,
+            duration: 0.8,
+            stagger: 0.2,
+            delay: 0.3
+        });
+
+        gsap.from('.chart-bar', {
+            height: 0,
+            duration: 1,
+            stagger: 0.1,
+            delay: 0.8
+        });
+
+        gsap.from('.activity-item', {
+            opacity: 0,
+            x: -30,
+            duration: 0.6,
+            stagger: 0.2,
+            delay: 1
+        });
+
+        // Theme toggle
+        function toggleTheme() {
+            document.body.classList.toggle('light-mode');
+        }
+
+        // User menu toggle
+        function toggleUserMenu() {
+            document.getElementById('userDropdown').classList.toggle('show');
+        }
+
+        // Logout
+        function logout() {
+            localStorage.removeItem('isLoggedIn');
+            localStorage.removeItem('username');
+            window.location.href = 'login.html';
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(event) {
+            const userMenu = document.querySelector('.user-menu');
+            if (!userMenu.contains(event.target)) {
+                document.getElementById('userDropdown').classList.remove('show');
+            }
+        });
+
+        // Modal functions
+        function showModal(modalId) {
+            document.getElementById(modalId).classList.remove('hidden');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.add('hidden');
+        }
+
+        function addProject() {
+            const projectName = document.getElementById('projectName').value;
+            const projectDesc = document.getElementById('projectDesc').value;
+            
+            if (projectName) {
+                alert('Loyiha qo\'shildi: ' + projectName);
+                closeModal('newProjectModal');
+                document.getElementById('projectName').value = '';
+                document.getElementById('projectDesc').value = '';
+            }
+        }
+
+        function savePortfolio() {
+            const editName = document.getElementById('editName').value;
+            const editBio = document.getElementById('editBio').value;
+            
+            if (editName) {
+                localStorage.setItem('username', editName);
+                localStorage.setItem('bio', editBio);
+                document.getElementById('navUsername').textContent = editName;
+                document.getElementById('welcomeUsername').textContent = editName;
+                alert('Portfolio yangilandi!');
+                closeModal('editPortfolioModal');
+            }
+        }
+
+        function sendMessage() {
+            const recipient = document.getElementById('messageRecipient').value;
+            const content = document.getElementById('messageContent').value;
+            
+            if (recipient && content) {
+                alert('Xabar yuborildi: ' + recipient);
+                closeModal('sendMessageModal');
+                document.getElementById('messageRecipient').value = '';
+                document.getElementById('messageContent').value = '';
+            }
+        }
+    </script>
+</body>
+</html>
